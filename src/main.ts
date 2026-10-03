@@ -2,7 +2,7 @@ import { InMemoryMemoryStore } from "./memory/memory-store";
 import { MemoryAgentOrchestrator } from "./agents/agent-orchestrator";
 import { RegistryToolExecutor } from "./tools/tool-executor";
 import { RuleBasedEvaluator } from "./evaluation/evaluator"; // ✅ add this
-
+import { scrapeTool } from "./tools/scraper";
 import type { MemoryEntry, MemoryStore } from "./memory/types";
 import type { AgentOrchestrator } from "./agents/types";
 import type { ToolExecutor } from "./tools/types";
@@ -13,6 +13,7 @@ async function main(): Promise<void> {
   const evaluator = new RuleBasedEvaluator(); // ✅ add this
 
   toolExecutor.registerTool("echo", async (input: any) => input);
+  toolExecutor.registerTool("scrape", scrapeTool);
 
   const agent: AgentOrchestrator = new MemoryAgentOrchestrator(
     memoryStore,
@@ -46,6 +47,14 @@ async function main(): Promise<void> {
   for (const entry of entries) {
     await memoryStore.store(entry);
   }
+
+  const scrapeResponse = await agent.handle(
+  "scrape https://example.com"
+  );
+
+  console.log("");
+  console.log("Scrape response:");
+  console.log(scrapeResponse);
 
   const memoryResponse = await agent.handle("How does memory work?");
   const toolResponse = await agent.handle("echo hello world");
